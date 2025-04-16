@@ -67,8 +67,8 @@ PARTICLE_A_ACC = h5.File(join(BANERJEE_PATH, 'data_garcia_23/a_inf.hdf5'), 'r') 
 
 
 # SHIELDS ET AL. (2025)
-HALO_DENSITIES = h5.File('shields_data_24/halo_densities.hdf5', 'r')
-SIMULT_PARAMS = h5.File('shields_data_24/halo_simultaneous_fit_orb_model_params.hdf5', 'r') # Best fit orbiting model parameters from fitting both rh and alpha_inf 
+HALO_DENSITIES = h5.File('/home/tdshield/shields_data_24/halo_densities.hdf5', 'r')
+SIMULT_PARAMS = h5.File('/home/tdshield/shields_data_24/halo_simultaneous_fit_orb_model_params.hdf5', 'r') # Best fit orbiting model parameters from fitting both rh and alpha_inf 
 # simultaneously
-CALIB_PARAMS = h5.File('shields_data_24/halo_calibrated_fit_orb_model_params.hdf5', 'r')
+CALIB_PARAMS = h5.File('/home/tdshield/shields_data_24/halo_calibrated_fit_orb_model_params.hdf5', 'r')
 
