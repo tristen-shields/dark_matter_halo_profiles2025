@@ -2,7 +2,10 @@ from .loading import *
 
 from scipy.integrate import quad
 import matplotlib.pyplot as plt
-# from numba import jit
+
+'''
+Contains every function used in the analysis that doesn't take in a halo ID.
+'''
 
 
 def rh_st(Morb):
@@ -26,6 +29,7 @@ def compute_density(part_distances, vol_factor=1):
     Counts the number of particles in the halo, N, then finds the total mass in bins of volume.
         part_distances: Particle distances from the center of the halo (1darray)
         vol_factor(=1): Fraction of halo's volume to use in the density calculation (int/float)
+    Returns: Orbiting density, as a 1D array with the same shape as RADIUS_BINS
     '''
     N, __ = np.histogram(part_distances, RADIUS_BINS) # Number of particles in each radial bin
     M = N * PARTICLE_MASS # Total mass of the particles
@@ -64,7 +68,7 @@ def orb_model(r, Morb, rh=False, alpha_inf=False):
 
 def orb_model_integrand(r, Morb, rh=False, alpha_inf=False):
     '''
-    Integrand for normalize_orb_model(), i.e. 4*pi*r^2*orb_model().
+    Integrand for normalize_orb_model(), i.e. 4*pi*r^2*orb_model() / A.
         r: Dummy variable (integrated over by scipy)
         Morb: Mass of halo's orbiting particles [Msun/h] (float)
         rh(=False): Halo radius parameter [Mpc/h] (float)
@@ -87,6 +91,7 @@ def normalize_orb_model(Morb, rh=False, alpha_inf=False):
         Morb: Mass of halo's orbiting particles [Msun/h] (float)
         rh(=False): Halo radius parameter [Mpc/h] (float)
         alpha_inf(=False): Asymptotic slope of the halo's profile (float)
+    Returns: Normalization constant A for the orbiting profile model (see Salazar et al. 2024)
     '''
     integrand = quad(orb_model_integrand, 0, np.inf, args=(Morb, rh, alpha_inf))[0]
     return Morb / integrand
@@ -163,9 +168,9 @@ def cost(x, data, Morb, fit_keyword, delta=0.05):
 def bin_massive_halos():
     '''
     Take all massive (see HALO_MASS_MASK in loading.py) halos, and organize them by log10(Morb) into MASS_BIN_EDGES by returning indices assigned to each halo that 
-    correspond to their mass bin.
+    correspond to their mass bin. 
     '''
-    Morb = HALO_CATALOG['Morb'][HALO_MASS_MASK] 
+    Morb = HALO_CATALOG['Morb'][HALO_MASS_MASK][:192042]
     log_Morb = np.log10(Morb)
     return np.digitize(log_Morb, MASS_BIN_EDGES)
 
@@ -181,11 +186,21 @@ def alpha_inf(rh, Morb):
 
 
 def alpha_inf_aRF(rh, aRF):
+    '''
+    Solves for alpha_infinity in terms of the best-fit halo radius rh and relative formation time aRF. 
+        rh: Best-fit halo radius, in Mpc/h, for the halo (float)
+        aRF: Halo's relative formation time (float)
+    '''
     R = ARF_0 + (S_ARF * aRF)
     return ALPHA_0 + (ALPHA_P * ((rh / (RH_P * R)) ** (ALPHA_S / RH_S))) + (S_ALPHA * np.log(R))
 
 
 def rh(Morb, aRF):
+    '''
+    Predicts the halo radius rh based off of the halo's orbiting mass Morb and relative formation time aRF.
+        Morb: Mass of the orbiting particles of the halo [Msun/h] (float)
+        aRF: Halo's relative formation time (float)
+    '''
     return (ARF_0 + (S_ARF * aRF)) * rh_st(Morb) 
 
 
@@ -212,6 +227,55 @@ def jk_error(values):
 
 
 # MISC
+def line(x, m, b):
+    '''
+    Model for fitting a line to data.
+    '''
+    return (m * x) + b
+
+
+def num_cost(params, x, y):
+    '''
+    Cost function that draws a line through data based on maximizing the number of datapoints within +/- 0.03 of the y-value of 
+    the line.
+        params: List or array containing the slope and y-intercept (list or 1d-array)
+        x: Data to be plotted along x-axis (ndarray)
+        y: Data to be plotted along y-axis (ndarray)
+    '''
+    m = params[0]
+    a = params[1]
+    n = 0
+    for i in range(len(y)):
+        if (y[i] > (line(x[i], m, a) - 0.03)) & (y[i] < (line(x[i], m, a) + 0.03)):
+            n +=1
+
+    return -n
+
+
+# STATISTICS AND FITTING
+'''
+Functions used for plotting and fitting different statistical distributions to data.
+'''
+def fit_gaussian(x, amp, mu, sig):
+    return amp * np.exp(-0.5 * (((x - mu) / sig) ** 2))
+
+
+def var_R(N, k, var0):
+    '''
+    Eqn. (14) from Shields et al. (2025).
+    '''
+    return var0 + (k / N)
+
+
+def lognormal_gaussian(x, M, S, a):
+    return (1 / (np.sqrt(2 * np.pi) * S * (x - a))) * np.exp(-((np.log(x - a) - M) ** 2) / (2 * (S ** 2)))
+
+
+def lognormal_expectation(M, S):
+    '''
+    Computes expectation value based on parameters from lognormal_gaussian.
+    '''
+    return np.exp(M + ((S ** 2) / 2)) 
 
 
 # @jit

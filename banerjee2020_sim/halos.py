@@ -1,6 +1,13 @@
 from .functions import *
 
 from iminuit import minimize 
+from astropy.cosmology import z_at_value
+import astropy.units as u
+
+'''
+Contains a halo class, which, upon feeding a halo ID from the catalog, will give useful information and functions having to do 
+with that particular halo.
+'''
 
 
 class halo(object):
@@ -25,7 +32,9 @@ class halo(object):
         self.rh_st, self.alpha_inf_st = stacked_parameters(self.Morb)
 
         # Halo particles
-        self.a_acc = PARTICLE_A_ACC['a_inf'][self.part_mask][self.orb_mask]
+        self.a_acc = PARTICLE_A_ACC['a_inf'][self.part_mask]
+        self.Vrp = ORBIT_CATALOG['Vrp'][self.part_mask, 0]
+        self.Rp = ORBIT_CATALOG['Rp'][self.part_mask, 0]
         
 
     def density(self, vol_factor=1):
@@ -57,8 +66,13 @@ class halo(object):
 
             Returns: Density profile in radial bins (1darray, length 20)
         '''
-        orb_part_distances = ORBIT_CATALOG['Rp'][self.part_mask, 0][self.inf_mask]
-        return compute_density(orb_part_distances, vol_factor=vol_factor)
+        inf_part_distances = ORBIT_CATALOG['Rp'][self.part_mask, 0][self.inf_mask]
+        return compute_density(inf_part_distances, vol_factor=vol_factor)
+
+
+    def Minf(self, r):
+        inf_part_distances = ORBIT_CATALOG['Rp'][self.part_mask, 0][self.inf_mask]
+        return PARTICLE_MASS * len(inf_part_distances[inf_part_distances < r])
     
 
     def fit_orb_parameters(self, fit_keyword, rh0, alpha0, delta=0.05):
@@ -86,17 +100,33 @@ class halo(object):
             return *result.x, alpha_inf(R, self.alpha_inf_st), result.fun
         
 
-    def a_60(self, bins=200, show_plot=False):
+    def a_60(self, bins=200, show_plot=False, choose_random=False):
         '''
         a_form, or the scale factor a at which the CDF(a_acc) for the halo's orbiting particles is 0.6.
             bins(=200): Number of bins to use when computing CDF(a_acc) (int)
+            choose_random(=False): If 'False', use all the halo's orbiting particles to construct the CDF. If some number, choose that number of orbiting particles from the 
+                halo at random to construct the CDF (int)
         '''
-        P, a_acc_bins = np.histogram(self.a_acc, bins=bins)
+        a_acc = self.a_acc[self.orb_mask]
+        if (choose_random != False) & (choose_random < len(a_acc)):
+            a_acc = np.random.choice(self.a_acc[self.orb_mask], size=choose_random, replace=False)
+        
+        P, a_acc_bins = np.histogram(a_acc, bins=bins)
         P_unity = P / P.sum() # Normalized to unity
         cdf = P_unity.cumsum()
+        a60 = a_acc_bins[1:][cdf > 0.6][0]
 
         if show_plot == True:
+            latex()
+
             plt.plot(a_acc_bins[1:], cdf)
+            plt.axvline(a60, c='r', label='$a_{60}$')
+            plt.axhline(0.6, c='gray')
+            
+            plt.title(f'HID {self.hid}')
+            plt.xlabel('$a_{\\rm acc}$')
+            plt.ylabel('Particle CDF')
+            plt.legend()
 
         return a_acc_bins[1:][cdf > 0.6][0]
 

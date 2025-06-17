@@ -1,4 +1,10 @@
 import numpy as np
+from astropy.cosmology import FlatLambdaCDM
+
+'''
+Contains all of the constants with information from the simulation, cosmological parameters, and numbers derived from the paper 
+analysis.
+'''
 
 
 PARTICLE_MASS = 7.754657e+10 # Particle mass [Msun/h]
@@ -12,6 +18,8 @@ COSMO_PARAMS = {
     'sigma8': 0.8355,
     'ns': 1
 }
+
+cosmo = FlatLambdaCDM(H0=COSMO_PARAMS['H0'], Om0=COSMO_PARAMS['Om0'], Ob0=COSMO_PARAMS['Ob0'])
 
 BOX_SIZE = 1_000 # Simulation box length [Mpc/h]
 
@@ -62,6 +70,16 @@ LNR_BIN_EDGES = np.array([-1.18129078, -0.53366139, -0.29854228, -0.06342316,  0
         0.40681506,  1.09861229]) # Minimum lnR, mean - (2 * std), mean - std, mean, mean + std, mean + (2*std), max lnR
 
 S_ALPHA = 1.0016474457286733 # Slope of the best-fit line to lnR vs. delta alpha infinity (fig. 2)
+S_ALPHA_UNC = 0.0208951712217638
+
 ALPHA_0 = 0.04933732028434024 # Y-intercept of the best-fit line to lnR vs. delta alpha infinity (fig. 2)
-S_ARF = -1.06050296107201 # Slope of the best-fit line to R vs. aRF (fig. 4)
-ARF_0 = 1.967430451024661 # Y-intercept of the best-fit line to R vs. aRF (fig. 4)
+ALPHA_0_UNC = 0.0026544942005671305
+
+S_ARF = -1.0 # Slope of the best-fit line to R vs. aRF (fig. 4)
+S_ARF_UNC = 0.016924550465302907
+
+ARF_0 = 1.9105103648680453 # Y-intercept of the best-fit line to R vs. aRF (fig. 4)
+ARF_0_UNC = 0.011437558308394819
+
+A_M200, B_M200 = (1.3153984374999996, -0.7244677734375005) # (slope, y-intercept) of rh/R200m vs Morb/M200m
+

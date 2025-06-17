@@ -4,8 +4,8 @@ from os import nice
 
 
 '''
-For each massive halo, fit its data to the orbiting density model. Keyword 'simultaneous' fits for both the halo radius rh and the asymptotic slope alpha_inf at the same 
-time. Keyword 'calibrated' writes alpha_inf as a function of rh, and only fits for rh. 
+For each halo log(Morb) > 13.40, fit its data to the orbiting density model. Keyword 'simultaneous' fits for both the halo radius rh and the asymptotic slope alpha_inf at the same 
+time. Keyword 'calibrated' writes alpha_inf as a function of rh (Eqn 12), and only fits for rh. 
 '''
 
 nice(10)

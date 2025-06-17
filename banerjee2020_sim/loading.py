@@ -3,8 +3,14 @@ from os.path import join
 
 from .constants import *
 
+'''
+Contains/Loads all of the filepaths of data used in the analysis.
+'''
+
 
 BANERJEE_PATH = '/spiff/edgarmsc/simulations/Banerjee'
+
+ROCKSTAR_CATALOG = h5.File(join(BANERJEE_PATH, 'rockstar/hlist_1.00000.hdf5'), 'r')
 
 # Halo catalog (ROCKSTAR haloes mass logM_200m [13.0, 15.4])
 HALO_CATALOG = h5.File(join(BANERJEE_PATH, 'rockstar/halo_catalogue.hdf5'), 'r')
@@ -18,7 +24,7 @@ HALO_CATALOG = h5.File(join(BANERJEE_PATH, 'rockstar/halo_catalogue.hdf5'), 'r')
 
 LOG_MORB = np.log10(HALO_CATALOG['Morb'][()])
 HALO_MASS_MASK = (LOG_MORB > MASS_BIN_EDGES[0]) & (LOG_MORB < MASS_BIN_EDGES[-1]) # Mask to get the halos in mass bins
-MASSIVE_HIDS = HALO_CATALOG['OHID'][HALO_MASS_MASK] # All HIDs of haloes in mass bins
+MASSIVE_HIDS = HALO_CATALOG['OHID'][HALO_MASS_MASK][:192042] # All HIDs of haloes in mass bins
 
 # Particle catalog, at z = 0 (1% of particles from the simulation)
 PARTICLE_CATALOG = h5.File(join(BANERJEE_PATH, 'snap/snap_099/particle_catalogue.hdf5'), 'r')
@@ -67,8 +73,11 @@ PARTICLE_A_ACC = h5.File(join(BANERJEE_PATH, 'data_garcia_23/a_inf.hdf5'), 'r') 
 
 
 # SHIELDS ET AL. (2025)
-HALO_DENSITIES = h5.File('/home/tdshield/shields_data_24/halo_densities.hdf5', 'r')
-SIMULT_PARAMS = h5.File('/home/tdshield/shields_data_24/halo_simultaneous_fit_orb_model_params.hdf5', 'r') # Best fit orbiting model parameters from fitting both rh and alpha_inf 
+SHIELDS_DATA_PATH = '/home/tdshield/shields_data_24/'
+HALO_DENSITIES = h5.File(join(SHIELDS_DATA_PATH, 'halo_densities.hdf5'), 'r')
+SIMULT_PARAMS = h5.File(join(SHIELDS_DATA_PATH, 'halo_simultaneous_fit_orb_model_params.hdf5'), 'r') # Best fit orbiting model parameters from fitting both rh and alpha_inf 
 # simultaneously
-CALIB_PARAMS = h5.File('/home/tdshield/shields_data_24/halo_calibrated_fit_orb_model_params.hdf5', 'r')
+CALIB_PARAMS = h5.File(join(SHIELDS_DATA_PATH, 'halo_calibrated_fit_orb_model_params.hdf5'), 'r')
+A_SIXTY = np.load(join(SHIELDS_DATA_PATH, 'halo_a60.npy'), allow_pickle=True)
+A_RF = np.load(join(SHIELDS_DATA_PATH, 'halo_aRF.npy'), allow_pickle=True)
 

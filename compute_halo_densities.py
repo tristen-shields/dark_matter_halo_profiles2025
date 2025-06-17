@@ -4,7 +4,7 @@ from os import nice
 
 
 '''
-For each massive halo, store its full, orbiting, and infalling density profiles.
+For each halo log(Morb) > 13.40, store its full, orbiting, and infalling density profiles.
 '''
 
 nice(10)
